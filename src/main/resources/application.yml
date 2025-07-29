@@ -1,0 +1,100 @@
+spring:
+  application:
+    name: ticketing-service
+  profiles:
+    active: dev
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ticketing_db}
+    username: ${DB_USERNAME:ticketing_user}
+    password: ${DB_PASSWORD:ticketing_pass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_batch_fetch_size: 16
+        jdbc:
+          batch_size: 20
+    show-sql: false
+
+  flyway:
+    enabled: true
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+# Security configuration
+spring.security:
+  oauth2:
+    resourceserver:
+      jwt:
+        # JWK Set URI for JWT validation - to be configured per environment
+        jwk-set-uri: ${JWT_JWK_SET_URI:}
+        # JWT claim for extracting user ID
+        issuer-uri: ${JWT_ISSUER_URI:}
+
+# Application specific security settings
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080}
+  security:
+    # Claim name in JWT that contains the external user ID
+    user-id-claim: ${JWT_USER_ID_CLAIM:sub}
+    # Claim name for user roles
+    roles-claim: ${JWT_ROLES_CLAIM:roles}
+
+# Media storage configuration
+media:
+  storage:
+    type: local
+    base-path: ${MEDIA_BASE_PATH:./uploads}
+    base-url: ${MEDIA_BASE_URL:http://localhost:8080/media}
+    allowed-types:
+      - image/jpeg
+      - image/png
+      - image/gif
+      - image/webp
+    max-file-size: ${MEDIA_MAX_FILE_SIZE:10485760} # 10MB
+    image-sizes:
+      small:
+        width: 150
+        height: 150
+        quality: "0.8"
+      medium:
+        width: 300
+        height: 300
+        quality: "0.9"
+      large:
+        width: 800
+        height: 600
+        quality: "0.95"

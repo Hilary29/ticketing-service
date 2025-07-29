@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ticketing-postgres
+    environment:
+      POSTGRES_DB: ticketing_db
+      POSTGRES_USER: ticketing_user
+      POSTGRES_PASSWORD: ticketing_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ticketing-network
+
+  ticketing-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: ticketing-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ticketing_db
+      SPRING_DATASOURCE_USERNAME: ticketing_user
+      SPRING_DATASOURCE_PASSWORD: ticketing_pass
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - ticketing-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: ticketing-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@neero.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - ticketing-network
+
+volumes:
+  postgres_data:
+
+networks:
+  ticketing-network:
+    driver: bridge
